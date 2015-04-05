@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Demo Chat</title>
+<link href="bootstrap.css" rel="stylesheet">
+
+<style>
+body {
+	padding: 20px;
+}
+
+#console {
+	height: 400px;
+	overflow: auto;
+}
+
+.table_column_heading{
+		padding:3px;
+		color:#FFF;
+		text-align:center;
+		vertical-align:middle;
+		border-bottom:2px solid #757575;
+		font-weight: bold;
+}
+
+</style>
+
+
+<script src="js/socket.io/socket.io.js"></script>
+<script src="js/moment.min.js"></script>
+<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+
+<script>
+	var currExchangeTrends = null;
+	var socket = io.connect('http://localhost:9092');
+	$(function() {
+	socket.on('publishMessage', function(data) {
+		currExchangeTrends = data;
+		if(data!=null){
+			$("#currExTable").show();
+		showTrends();
+		}
+		else{
+			$("#currExTable").find("tr:gt(0)").remove();
+			$("#currExTable").hide();
+		}
+	});
+	
+	});
+
+	function showTrends() {
+		$("#currExTable").find("tr:gt(0)").remove();
+		var selTrend = $("select[name='selCurrExchangeTrend']").val();
+		if(currExchangeTrends !=null){
+		$.each(currExchangeTrends, function(key, value) {
+			if (key == selTrend) {
+				
+				$('#currExTable tr:last').after(
+						"<tr class='table_column_heading'><td>" + $("select[name='selCurrExchangeTrend']").find('option:selected').text()
+								+ '</td><td>'+' TRANSACTION COUNT'
+								+ '</td></tr>');
+				
+				$.each(value, function(index, transMetricsObj) {
+					$('#currExTable tr:last').after(
+							'<tr><td>' + transMetricsObj.metricName
+									+ '</td><td>' + transMetricsObj.metricValue
+									+ '</td></tr>');
+				});
+				
+				$("table#currExTable tr:even").css("background-color", "#FAFAFA");
+				  $("table#currExTable tr:odd").css("background-color", "#58ACFA");
+			}
+		});
+		}
+	}
+</script>
+</head>
+
+<body>
+
+	<h1 style="color: #0101DF">CurrencyFair Transactions</h1>
+
+	<br />
+
+<div>
+	<select name="selCurrExchangeTrend" onchange="showTrends()" style="color: #A4A4A4">
+		<option value="CURRENCY_PAIR_EXCHANGE">CURRENCY PAIR EXCHANGE</option>
+		<option value="CURRENCY_BUYING">CURRENCY BUYING</option>
+		<option value="CURRENCY_SELLING">CURRENCY SELLING</option>
+		<option value="TRANSACTION_ORIGIN_COUNTRY">TRANSACTION ORIGIN COUNTRY</option>
+		<option value="USER_TRANSACTION">USER</option>
+	</select>
+</div>
+	<br>
+		<table id="currExTable" border="" >
+		<tbody>
+             <tr>
+                 <td> </td> <td></td>
+             </tr>
+      </tbody>
+		</table>
+
+</body>
+
+</html>
